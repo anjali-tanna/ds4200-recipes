@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/staticFiles/style.css">
+    <title>Recipe Recommendation System</title>
+    
+	<!--<script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.2.26/jquery.autocomplete.min.js"></script>
+</head>
+<body>
+    <div class="page"> 
+    <div class="title">
+        <div>
+        <img src="../staticFiles/imgs/header.png" width="1200" height="300">
+        </div>
+        <div>
+            <p class="intro">Looking for a recipe recommendation based on type,
+            cuisine, cooking technique, or ingredients? Or are you someone
+            with limited recipe knowledge who wants to try something new?
+            Input your preferences below and just like magic - you'll have
+            a new recipe to recreate!
+        </p>
+        </div>
+    </div>
+    <div class="flex-container">
+        <div class="image_column">
+            <br><br>
+            <img src="../staticFiles/imgs/berries.png" width="100" height="100">
+            <br>
+            <img src="../staticFiles/imgs/utensils.png" width="100" height="100">
+            <br>
+            <img src="../staticFiles/imgs/lemon wedge.png" width="100" height="100">
+            <br>
+            <img src="../staticFiles/imgs/lime.png" width="100" height="100">
+            <br>
+            <img src="../staticFiles/imgs/pans.png" width="100" height="100">
+        </div>
+        <div class="user_input">
+        <form action="print_list" method="POST">
+            <label for="ingredients"><b>Enter an Ingredient:</b></label>
+            <br>
+            <input type="text" class="input_box" id="ingredients" name="recipe_ingredients" placeholder="List of Ingredients">
+            <p>Current Ingredients: {{ string_value }}</p>
+            <button class="add_button" type="submit">Add</button>
+        </form>
+        <form action="get_text" method="POST">
+            <input type="hidden" class="input_box" name="ingredients" value="{{ request.form.recipe_ingredients }}">
+            
+            <br><br>
+            <label for="name"><b>Search for a Specific Recipe:</b></label>
+            <br>
+            <input type="text" class="input_box" id="name" name="recipe_name" placeholder="Recipe Name...">
+            <br><br>
+                <label for="dropdown"><b>Recipe Type:</b></label>
+                <br>
+                <select class="dropdown" name="recipe_types" id="type_id">
+                    {% for type in recipe_types %}
+                      <option value="{{type}}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+
+            <br><br>
+                <label for="dropdown"><b>Course:</b></label>
+                <br>
+                <select class="dropdown" name="courses" id="course_id">
+                    {% for course in courses %}
+                      <option value="{{course}}">{{ course }}</option>
+                    {% endfor %}
+                </select>
+
+            <br><br>
+                <label for="dropdown"><b>Cooking Technique:</b></label>
+                <br>
+                <select class="dropdown" name="techniques" id="technique_id">
+                    {% for technique in techniques %}
+                      <option value="{{technique}}">{{ technique }}</option>
+                    {% endfor %}
+                </select>
+
+            <br><br>
+                <label for="dropdown"><b>Cuisine:</b></label>
+                <br>
+                <select class="dropdown" name="cuisines" id="cuisine_id">
+                    {% for cuisine in cuisines %}
+                      <option value="{{cuisine}}">{{ cuisine }}</option>
+                    {% endfor %}
+                </select>
+            <br><br>
+            <button id="search_button" class = "search_button" type="submit">Search</button>
+            <br><br>
+            
+        </form>
+        </div>
+
+        <div class="suggestions">
+            <form action="name_suggestion" method="POST">
+                <label for="name"><b>Insert a Recipe for Similar Recommendations</b></label>
+                <p>(including other filters!)</p>
+                <br>
+                <input type="hidden" class="input_box" name="ingredients" id="hidden_ingredients">
+                <input type="hidden" class="input_box" name="recipe_types" id="hidden_type">
+                <input type="hidden" class="input_box" name="courses" id="hidden_course">
+                <input type="hidden" class="input_box" name="techniques" id="hidden_technique">
+                <input type="hidden" class="input_box" name="cuisines" id="hidden_cuisine">
+                <input type="text" class="input_box" id="name_suggestion" name="recipe_name_suggestion" placeholder="Recipe Name...">
+                <br><br>
+                <button class="search_button" onclick="submitForm()">Search</button>
+            </form>
+            <script>
+                function submitForm() {
+                    // Get the values of input1 and input2 from form1
+                    var ingredients = document.getElementById('ingredients').value;
+                    var type = document.getElementById('type_id').value;
+                    var course = document.getElementById('course_id').value;
+                    var technique = document.getElementById('technique_id').value;
+                    var cuisine = document.getElementById('cuisine_id').value;
+
+                    // Set the values of input3 and input4 in form2 to the values of input1 and input2 from form1
+                    document.getElementById('hidden_ingredients').value = ingredients;
+                    document.getElementById('hidden_type').value = type;
+                    document.getElementById('hidden_course').value = course;
+                    document.getElementById('hidden_technique').value = technique;
+                    document.getElementById('hidden_cuisine').value = cuisine;
+                }
+            </script>
+        <br>
+        Suggestions
+        <output class="output" type="text" id="output" name="recipe_output" placeholder="Suggestion Here..."></output>
+        <!-- <textarea rows="30" cols="50"> -->
+            <code>{{ recommendations | safe }}</code>
+        <!-- </textarea> -->
+        </div>
+        <div class="right_col">
+        <br><br>
+        <img src="../staticFiles/imgs/bowls.png" width="100" height="100">
+        <br>
+        <img src="../staticFiles/imgs/leaves.png" width="100" height="100">
+        <br>
+        <img src="../staticFiles/imgs/lemon.png" width="100" height="100">
+        <br>
+        <img src="../staticFiles/imgs/mushrooms.png" width="100" height="100">
+        <br>
+        <img src="../staticFiles/imgs/plates.png" width="100" height="100">
+        </div>
+    </div>
+    <script>
+        $('#name').autocomplete({
+            serviceUrl: '/search/recipe_name',
+            dataType: 'json',
+            onSearchComplete: function (query, suggestions) {
+              console.log(query);
+            }
+        });
+      
+        $('#name_suggestion').autocomplete({
+            serviceUrl: '/search/recipe_name',
+            dataType: 'json',
+            onSearchComplete: function (query, suggestions) {
+              console.log(query);
+            }
+        });
+
+        $('#ingredients').autocomplete({
+            serviceUrl: '/search/recipe_ingredients',
+            dataType: 'json',
+            onSearchComplete: function (query, suggestions) {
+              console.log(query);
+            }
+        });
+        </script>
+</body>
+</html>
